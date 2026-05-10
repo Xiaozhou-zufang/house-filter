@@ -1,1 +1,190 @@
-<h1>房源筛选器准备就绪</h1>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>房源筛选器</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f5f5f5; padding:10px; color:#333; }
+        .container { max-width:600px; margin:0 auto; }
+        h1 { font-size:22px; text-align:center; margin:8px 0; color:#1a73e8; }
+        .filters { background:white; border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+        .filter-row { display:flex; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap; }
+        .filter-row label { font-weight:600; font-size:14px; min-width:40px; }
+        .filter-row input { flex:1; padding:8px 10px; border-radius:8px; border:1px solid #ddd; font-size:14px; min-width:80px; }
+        .filter-row input:focus { border-color:#1a73e8; outline:none; }
+        .stats { font-size:13px; color:#666; margin-bottom:8px; text-align:center; }
+        .house-list { display:flex; flex-direction:column; gap:10px; }
+        .house-card { background:white; border-radius:12px; padding:12px 14px; box-shadow:0 2px 6px rgba(0,0,0,0.06); border-left:4px solid #1a73e8; }
+        .house-card .title { font-weight:700; font-size:16px; margin-bottom:4px; }
+        .house-card .detail { font-size:14px; color:#555; margin-bottom:2px; line-height:1.4; }
+        .house-card .contact { color:#d93025; font-weight:600; margin-top:4px; }
+        .no-result { text-align:center; color:#999; padding:30px 0; font-size:16px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏠 房源筛选器</h1>
+    <div class="filters">
+        <div class="filter-row">
+            <label>💰租金</label>
+            <input type="number" id="minRent" placeholder="最低" value="0" style="width:70px;">
+            <span>—</span>
+            <input type="number" id="maxRent" placeholder="最高" value="20000" style="width:80px;">
+        </div>
+        <div class="filter-row">
+            <label>🏷️户型</label>
+            <input type="text" id="layoutFilter" placeholder="例：1室、2室">
+        </div>
+        <div class="filter-row">
+            <label>📍小区</label>
+            <input type="text" id="communityFilter" placeholder="小区名或关键词">
+        </div>
+        <div class="filter-row">
+            <label>📝备注</label>
+            <input type="text" id="noteFilter" placeholder="其他说明关键词">
+        </div>
+    </div>
+    <div class="stats" id="stats">共 0 条房源</div>
+    <div class="house-list" id="houseList"></div>
+    <div class="no-result" id="noResult" style="display:none;">😕 没有匹配的房源</div>
+</div>
+<script>
+    const houses = [
+    {
+        "发送者": "Wu",
+        "小区名称": "阳光苑三区",
+        "月租金": 2000,
+        "户型及说明": "1室1厅1卫；27号101阳台房独厨独卫",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "浏翔花苑2号门",
+        "月租金": 1850,
+        "户型及说明": "1室1厅1卫；50号301室朝南独厨独卫",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "浏翔花苑2号门",
+        "月租金": 1650,
+        "户型及说明": "1室1厅1卫；50号102独厨独卫",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "浏翔花苑1号门2221",
+        "月租金": 1850,
+        "户型及说明": "1室1厅1卫；167号302飘窗复式",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "永乐公寓",
+        "月租金": 2000,
+        "户型及说明": "1室1厅1卫；247号101独厨独卫有车位",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "永乐公寓",
+        "月租金": 1450,
+        "户型及说明": "1室1厅1卫；255号104独厨独卫",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "今日之春",
+        "月租金": 2300,
+        "户型及说明": "1室1厅1卫；321号101独厨独卫有车位",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "Wu",
+        "小区名称": "古漪庄园",
+        "月租金": 2300,
+        "户型及说明": "1室1厅1卫；83号103独门独户",
+        "联系方式": "15221894723/18616900666"
+    },
+    {
+        "发送者": "林圣儒",
+        "小区名称": "虹翔公寓",
+        "月租金": 2800,
+        "户型及说明": "1室1厅；687弄1号401室套内一房一厅，租客转租",
+        "联系方式": "13127587111/13248077888"
+    },
+    {
+        "发送者": "林圣儒",
+        "小区名称": "曙光苑",
+        "月租金": 1600,
+        "户型及说明": "未知；67号102室次卧独卫，天燃气厨房",
+        "联系方式": "13127587111/13248077888"
+    },
+    {
+        "发送者": "林圣儒",
+        "小区名称": "翔华新村",
+        "月租金": 2000,
+        "户型及说明": "未知；41号402室c独厨独卫",
+        "联系方式": "13127587111/13248077888"
+    },
+    {
+        "发送者": "南翔合租房出租13621963556",
+        "小区名称": "翔瑞新苑",
+        "月租金": 2380,
+        "户型及说明": "1室1厅1卫；主卧原始独卫，燃气洗澡，随时入住",
+        "联系方式": "13621963556"
+    },
+    {
+        "发送者": "南翔合租房出租13621963556",
+        "小区名称": "翔瑞新苑",
+        "月租金": 1050,
+        "户型及说明": "1室1厅1卫；南区小单间独卫，随时入住",
+        "联系方式": "13621963556"
+    },
+    {
+        "发送者": "南翔合租房出租13621963556",
+        "小区名称": "阳光苑",
+        "月租金": 1400,
+        "户型及说明": "1室1厅1卫；大房间，公用卫浴，随时入住",
+        "联系方式": "13621963556"
+    }
+];
+    const minRentInput = document.getElementById('minRent');
+    const maxRentInput = document.getElementById('maxRent');
+    const layoutFilter = document.getElementById('layoutFilter');
+    const communityFilter = document.getElementById('communityFilter');
+    const noteFilter = document.getElementById('noteFilter');
+    const statsDiv = document.getElementById('stats');
+    const houseListDiv = document.getElementById('houseList');
+    const noResultDiv = document.getElementById('noResult');
+    function render() {
+        const minRent = parseInt(minRentInput.value) || 0;
+        const maxRent = parseInt(maxRentInput.value) || 999999;
+        const layoutKw = layoutFilter.value.trim().toLowerCase();
+        const communityKw = communityFilter.value.trim().toLowerCase();
+        const noteKw = noteFilter.value.trim().toLowerCase();
+        const filtered = houses.filter(h => {
+            const rent = h.月租金 || 0;
+            if (rent < minRent || rent > maxRent) return false;
+            if (layoutKw && !(h.户型及说明 || '').toLowerCase().includes(layoutKw)) return false;
+            if (communityKw && !(h.小区名称 || '').toLowerCase().includes(communityKw)) return false;
+            if (noteKw && !(h.户型及说明 || '').toLowerCase().includes(noteKw)) return false;
+            return true;
+        });
+        statsDiv.textContent = `共 ${filtered.length} 条房源`;
+        houseListDiv.innerHTML = '';
+        noResultDiv.style.display = filtered.length === 0 ? 'block' : 'none';
+        filtered.forEach(h => {
+            const card = document.createElement('div');
+            card.className = 'house-card';
+            card.innerHTML = `<div class="title">${h.小区名称 || '未知'} · ${h.月租金 || '?'}元/月</div><div class="detail">${h.户型及说明 || ''}</div>${h.联系方式 ? `<div class="contact">📞 ${h.联系方式}</div>` : ''}`;
+            houseListDiv.appendChild(card);
+        });
+    }
+    [minRentInput, maxRentInput, layoutFilter, communityFilter, noteFilter].forEach(el => el.addEventListener('input', render));
+    render();
+</script>
+</body>
+</html>
